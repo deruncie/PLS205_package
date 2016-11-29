@@ -1,0 +1,11 @@
+Package: PLS205
+Type: Package
+Title: Provides some functions to help with PLS205 assignments
+Version: 0.1.0
+Author: Daniel Runcie
+Maintainer: Daniel Runcie <deruncie@ucdavis.edu>
+Description: Implements several functions for dealing with experimental designs and analyses
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports: ggplot2

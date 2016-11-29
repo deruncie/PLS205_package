@@ -1,0 +1,114 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(ggplot2)
+library(PLS205)
+```
+
+```{r}
+data = data.frame(G1 = rep(1:4,each = 20),G2 = factor(rep(1:2,each = 10)))
+data$xx = runif(nrow(data)) + data$G1
+data$y = .1*data$xx + (data$xx-mean(data$xx))^2 + .1*rnorm(nrow(data)) + data$G1 + as.numeric(data$G2)
+data$G1 = factor(data$G1)
+data$G2 = factor(data$G2)
+```
+
+```{r}
+p = ggplot(data,aes(x=xx,y=y)) + geom_point() + facet_wrap(~G1,scales = 'free')
+p + geom_smooth(method = 'lm',aes(group = G2))
+```
+
+```{r}
+my_lm = lm(y~G1*xx*G2,data)
+summary(my_lm)
+pred_data = predict(my_lm,newdata = data,se.fit = T)
+data$y_pred = pred_data$fit
+data$y_max = data$y_pred + 2*pred_data$se.fit
+data$y_min = data$y_pred - 2*pred_data$se.fit
+p + geom_ribbon(data = data,aes(group = G2,ymin = y_min,ymax = y_max),alpha = .2) + geom_line(data = data,aes(color = G2,y = y_pred)) 
+```
+```{r}
+pred_data = predict(my_lm,newdata = data,se=T)
+data2 = data
+data2$y_pred = pred_data$fit
+data2$ymax = data2$y_pred + 2*pred_data$se.fit
+data2$ymin = data2$y_pred - 2*pred_data$se.fit
+
+p %+% data2 + geom_ribbon(aes(group = G2,ymin = ymin,ymax = ymax),alpha = 0.2) + geom_line(aes(color = G2,y=y_pred))
+```
+
+```{r}
+StatPredlm <- ggproto("StatPredlm", Stat, 
+  required_aes = c("x", "y"),
+  
+  compute_group = function(data, scales, fitted_model = NULL,fullrange=TRUE) {
+    pred_data = predict(fitted_model,newdata = data,se.fit = T)
+    data$y_pred = pred_data$fit
+    data$ymax = data$y_pred + 2*pred_data$se.fit
+    data$ymin = data$y_pred - 2*pred_data$se.fit
+    data$y = data$y_pred
+    data
+  }
+)
+
+stat_predlm <- function(mapping = NULL, data = NULL, geom = "smooth",
+                    position = "identity", show.legend = NA, 
+                    inherit.aes = TRUE, fitted_model = NULL, se=TRUE, fullrange = FALSE,
+                    ...) {
+  layer(
+    stat = StatPredlm, data = data, mapping = mapping, geom = geom, 
+    position = position, show.legend = show.legend, inherit.aes = inherit.aes,
+    params = list(fitted_model = fitted_model,fullrange=fullrange, ...)
+  )
+}
+
+p + stat_predlm(fitted_model = my_lm,aes(color = G2,G1 = G1,G2 = G2,xx=xx)) 
+```
+
+```{r}
+p + stat_plotlm(fitted_model = my_lm,aes(color = G2,G1 = G1,G2 = G2,xx=xx),se=F) 
+```
+```{r}
+mod2 = lm(y~G1*G2,data)
+p = ggplot(data,aes(x=G1,y=y)) + geom_boxplot(aes(color = G2))
+p + geom_smooth(aes(group = G2,color = G2),span = .3)
+p + stat_plotlm(fitted_model = mod2,aes(group = G2,color = G2,G1=G1,G2=G2),se=T)
+
+p = ggplot(data,aes(x=xx,y=y)) + geom_point(aes(color = G2)) + facet_wrap(~G1,scales = 'free')
+p + geom_smooth(aes(color = G2),method = lm,fullrange = F)
+p + stat_plotlm(fitted_model = my_lm,aes(color = G2,G1=G1,G2=G2,xx=xx),fullrange = F,se=T)
+p %+% data2 + geom_ribbon(aes(group = G2,ymin = ymin,ymax = ymax),alpha = 0.2) + geom_line(aes(color = G2,y=y_pred))
+data = add_intervals(data,my_lm)
+p = ggplot(data,aes(x=xx,y=y)) + geom_point(aes(color = G2)) + facet_wrap(~G1,scales = 'free')+ geom_ribbon(aes(group = G2,ymin = ymin,ymax = ymax),alpha = 0.2) + geom_line(aes(color = G2,y=y_pred))
+p
+```
+```{r}
+mod3 = lm(y~G1*G2 + poly(xx,2),data)
+p = ggplot(data,aes(x=xx,y=y)) + geom_point(aes(color = G2)) + facet_wrap(~G1,scales = 'free')
+p + stat_plotlm(fitted_model = mod3,aes(color = G2,G1=G1,G2=G2,xx=xx),fullrange = F,se=T)
+data = add_intervals(data,mod3)
+p = ggplot(data,aes(x=xx,y=y)) + geom_point(aes(color = G2)) + facet_wrap(~G1,scales = 'free')+ geom_ribbon(aes(group = G2,ymin = ymin,ymax = ymax),alpha = 0.2) + geom_line(aes(color = G2,y=y_pred))
+p
+
+
+mod4 = lm(y~G1*G2,data)
+p = ggplot(data,aes(x=G1,y=y)) + geom_point(aes(color = G2))
+p + stat_plotlm(fitted_model = mod4,aes(group = G2,color = G2,G1=G1,G2=G2,xx=xx),fullrange = F,se=T)
+```
+
+
+
+```{r}
+library(lme4)
+library(lmerTest)
+mod5_lmer = lmer(y~G1*poly(xx,2) + (1|G2),data)
+mod5_lm = lm(y~G1*poly(xx,2)+G2,data)
+p = ggplot(data,aes(x=xx,y=y)) + geom_point(aes(color = G2)) + facet_wrap(~G1,scales = 'free')
+p + stat_plotlm(fitted_model = mod5_lmer,aes(group = G2,color = G2,G1=G1,G2=G2,xx=xx),fullrange = F,se=T)
+p + stat_plotlm(fitted_model = mod5_lm,aes(group = G2,color = G2,G1=G1,G2=G2,xx=xx),fullrange = F,se=T)
+
+```
+
