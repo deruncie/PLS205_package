@@ -44,10 +44,21 @@ p %+% data2 + geom_ribbon(aes(group = G2,ymin = ymin,ymax = ymax),alpha = 0.2) +
 mod2 = lm(y~G1*G2,data)
 p = ggplot(data,aes(x=G1,y=y)) + geom_boxplot(aes(color = G2))
 p + geom_smooth(aes(group = G2,color = G2),span = .3)
-p + stat_plotlm(fitted_model = mod2,aes(group = G2,color = G2,G1=G1,G2=G2),se=T)
+# p + stat_plotlm(fitted_model = mod2,aes(group = G2,color = G2,G1=G1,G2=G2),se=T)
+
+predicted_values = data.frame(summary(lsmeans(mod2,~G1+G2,weights = 'cell')))
+predicted_values$y = predicted_values$lsmean
+p + geom_ribbon(data = predicted_values,aes(ymin = lower.CL,ymax = upper.CL,group = G2),alpha = 0.2) + geom_line(data = predicted_values,aes(group = G2,color = G2,y = lsmean))
 
 p = ggplot(data,aes(x=xx,y=y)) + geom_point(aes(color = G2)) + facet_wrap(~G1,scales = 'free')
 p + geom_smooth(aes(color = G2),method = lm,fullrange = F)
+
+predicted_values = data.frame(summary(lsmeans(ref.grid(my_lm,with(data,list(G1=levels(G1),G2=levels(G2),xx = seq(min(xx),max(xx),length=100)))),~G1+G2+xx,weights = 'cell')))
+predicted_values$y = predicted_values$lsmean
+p + geom_ribbon(data = predicted_values,aes(ymin = lower.CL,ymax = upper.CL,group = G2),alpha = 0.2) + geom_line(data = predicted_values,aes(group = G2,color = G2,y = lsmean))
+
+
+
 p + stat_plotlm(fitted_model = my_lm,aes(color = G2,G1=G1,G2=G2,xx=xx),fullrange = F,se=T)
 p %+% data2 + geom_ribbon(aes(group = G2,ymin = ymin,ymax = ymax),alpha = 0.2) + geom_line(aes(color = G2,y=y_pred))
 data = add_intervals(data,my_lm)
@@ -60,7 +71,6 @@ p = ggplot(data,aes(x=xx,y=y)) + geom_point(aes(color = G2)) + facet_wrap(~G1,sc
 p + stat_plotlm(fitted_model = mod3,aes(color = G2,G1=G1,G2=G2,xx=xx),fullrange = F,se=T)
 data = add_intervals(data,mod3)
 p = ggplot(data,aes(x=xx,y=y)) + geom_point(aes(color = G2)) + facet_wrap(~G1,scales = 'free')+ geom_ribbon(aes(group = G2,ymin = ymin,ymax = ymax),alpha = 0.2) + geom_line(aes(color = G2,y=y_pred))
-p
 
 
 mod4 = lm(y~G1*G2,data)

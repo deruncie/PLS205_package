@@ -1,11 +1,29 @@
-StatPlotlm <- ggplot2::ggproto("StatPlotlm", ggplot2::Stat,
-  required_aes = c("x", "y"),
+StatPlotlm2 <- ggplot2::ggproto("StatPlotlm2", ggplot2::Stat,
+  required_aes = c("x", "y","ID"),
 
   compute_group = function(data, scales, fitted_model = NULL,se = TRUE,
                            n = 100,
                            fullrange = FALSE,
-                           SEs = 2
+                           SEs = 2,
+                           fulldata = NULL
                            ) {
+    # current idea: add an ID attribute, and then pass in the full model's data through params.
+    # Then use lsmeans / ref.grid to estimate predicted values and intervals for continuous and factor predictors
+    # return these intervals for plotting with geom_smooth
+
+    recover()
+    factor_columns = sapply(data,function(x) !is.numeric(x))
+    factor_levels = lapply(data[,factor_columns],unique)
+    x_column = sapply(colnames(data),function(x) !x %in% c('colour','group','PANEL') & all(data[[x]] == data$x))
+    if(sum(x_column) > 1) x_column[['x']] = F
+    x_column = which(x_column)[1]  # choose first column that is identical to x
+
+    if(!factor_columns[x]) {
+      # this means the x_column is continuous, so we want n points along the range of x
+
+    }
+
+
     # creates a data.set expanded over all levels of factors in data and with a continuous x-covariate spread over n points
     # do some work to figure out which columns are factors and which are numeric.
     factor_columns = sapply(data,function(x) !is.numeric(x))
@@ -28,7 +46,7 @@ StatPlotlm <- ggplot2::ggproto("StatPlotlm", ggplot2::Stat,
       # repeate x_seq for each combination of factor_levels
       new_data = c(data.frame(x = seq(min,max,length = n)),factor_levels)
       new_data = expand.grid(new_data)
-      new_data[[colnames(data)[x_column]]] = new_data$x
+      new_data[[colnames(data)[x_column][1]]] = new_data$x
     } else{
       # this means x_column is a factor, so no extra interpolation is needed
       combined_factor_levels = apply(data[,factor_columns],1,paste,collapse='::')
@@ -88,11 +106,11 @@ StatPlotlm <- ggplot2::ggproto("StatPlotlm", ggplot2::Stat,
 #' @export
 stat_plotlm <- function(mapping = NULL, data = NULL, geom = "smooth",
                         position = "identity", show.legend = NA,
-                        inherit.aes = TRUE, fitted_model = NULL, se=TRUE, fullrange = FALSE,n = 100,SEs = 2,
+                        inherit.aes = TRUE, fitted_model = NULL, se=TRUE, fullrange = FALSE,n = 100,SEs = 2,fulldata=NULL,
                         ...) {
   ggplot2::layer(
-    stat = StatPlotlm, data = data, mapping = mapping, geom = geom,
+    stat = StatPlotlm2, data = data, mapping = mapping, geom = geom,
     position = position, show.legend = show.legend, inherit.aes = inherit.aes,
-    params = list(fitted_model = fitted_model, se=se,n=n,fullrange = fullrange,SEs = SEs,...)
+    params = list(fitted_model = fitted_model, se=se,n=n,fullrange = fullrange,SEs = SEs,fulldata = fulldata,...)
   )
 }

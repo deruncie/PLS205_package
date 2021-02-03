@@ -20,4 +20,3 @@ dataframe augmented with columns \code{y_pred}, \code{ymin}, and \code{ymax}
 Adds columns y_pred, ymax and ymin to a data.frame based on predictions from a previously fitted
 linear model (lm or lmer). Note: lmer models don't provide SEs, so those values are set to NA.
 }
-
