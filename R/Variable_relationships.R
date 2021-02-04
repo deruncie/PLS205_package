@@ -13,8 +13,8 @@
 #'
 #' @examples
 is_nested = function(outer_term,inner_term,data) {
-  if(!outer_term %in% colnames_data) stop(sprintf('%s not a column of you data.table',outer_term))
-  if(!inner_term %in% colnames_data) stop(sprintf('%s not a column of you data.table',inner_term))
+  if(!outer_term %in% colnames(data)) stop(sprintf('%s not a column of you data.table',outer_term))
+  if(!inner_term %in% colnames(data)) stop(sprintf('%s not a column of you data.table',inner_term))
   all(colSums(table(data[[outer_term]],data[[inner_term]]) > 0L) == 1L)
 }
 
@@ -33,8 +33,8 @@ is_nested = function(outer_term,inner_term,data) {
 #'
 #' @examples
 is_aliased = function(term1, term2, data) {
-  if(!term1 %in% colnames_data) stop(sprintf('%s not a column of you data.table',term1))
-  if(!term2 %in% colnames_data) stop(sprintf('%s not a column of you data.table',term2))
+  if(!term1 %in% colnames(data)) stop(sprintf('%s not a column of you data.table',term1))
+  if(!term2 %in% colnames(data)) stop(sprintf('%s not a column of you data.table',term2))
   is_nested(term1,term2,data) & is_nested(term2,term1,data)
 }
 
@@ -57,8 +57,8 @@ is_aliased = function(term1, term2, data) {
 #'
 #' @examples
 is_crossed = function(term1, term2, data) {
-  if(!term1 %in% colnames_data) stop(sprintf('%s not a column of you data.table',term1))
-  if(!term2 %in% colnames_data) stop(sprintf('%s not a column of you data.table',term2))
+  if(!term1 %in% colnames(data)) stop(sprintf('%s not a column of you data.table',term1))
+  if(!term2 %in% colnames(data)) stop(sprintf('%s not a column of you data.table',term2))
   if(!only_full_crossed) {
     is_nested(term1,term2,data) & is_nested(term2,term1,data)
   } else{
