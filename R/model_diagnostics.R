@@ -25,8 +25,12 @@ pls205_diagnostics = function(model,EU = NULL) {
       eu_data = eu_data[!duplicated(eu_data[[EU]]),]
       eu_data = eu_data[order(eu_data[[EU]]),]
       ranefs = as.data.frame(ranef(model,condVar=T))
-      ranefs$condsd = ranefs$condsd/mean(ranefs$condsd)
-      eu_data$EU_std_resid = (ranefs$condval/ranefs$condsd)[match(eu_data[[EU]],ranefs$grp)]
+      if(all(ranefs$condsd>0)) {
+        ranefs$condsd = ranefs$condsd/mean(ranefs$condsd)
+        eu_data$EU_std_resid = (ranefs$condval/ranefs$condsd)[match(eu_data[[EU]],ranefs$grp)]
+      } else{
+        eu_data$EU_std_resid = ranefs$condval[match(eu_data[[EU]],ranefs$grp)]
+      }
     }
   }
   op = par(mfrow=c(1,2))
