@@ -41,3 +41,21 @@ pls205_diagnostics = function(model,EU = NULL) {
   par(op)
   invisible(eu_data)
 }
+
+
+
+block_interactions_plot = function(full_model,block = 'Block') {
+  if(!block %in% all.vars(formula(full_model))) stop(sprintf('%s not a term in the model',block))
+  block = 'Chamber'
+  vars = all.vars(formula(full_model)[-2])
+  vars = vars[vars != block]
+  frame = model.frame(full_model)
+  frame$fitted = predict(full_model)
+  frame$group = interaction(lapply(vars,function(x) frame[[x]]),drop=T)
+  frame$block = frame[[block]]
+  block_means = tapply(frame$fitted,frame$block,mean)
+  frame$block = factor(frame$block,levels = levels(frame$block)[order(block_means)])
+  p = ggplot(frame,aes(x=block,y=fitted)) + geom_line(aes(group = group,color = group)) +
+    ylab(all.vars(formula(full_model)[[2]])) + xlab(block) + guides(color = guide_legend(title = paste(vars,collapse=':')))
+  print(p)
+}
