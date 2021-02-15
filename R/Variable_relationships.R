@@ -87,13 +87,13 @@ is_crossed = function(formula, data,only_full_crossed = F) {
     vars = vars[!vars %in% colnames(data)]
     stop(sprintf('Variable(s): %s are not columns of your data',paste(vars,collapse=', ')))
   }
-
-  term1 = formula[[2]]
-  term2 = formula[[3]]
-  term1 = interaction(lapply(all.vars(term1),function(x) data[[x]]),drop=T)
-  term2 = interaction(lapply(all.vars(term2),function(x) data[[x]]),drop=T)
+  term1_name = formula[[2]]
+  term2_name = formula[[3]]
+  term1 = interaction(lapply(all.vars(term1_name),function(x) data[[x]]),drop=T)
+  term2 = interaction(lapply(all.vars(term2_name),function(x) data[[x]]),drop=T)
 
   t = table(term1,term2)
+  names(dimnames(t)) = c(term1_name,term2_name)
   if(only_full_crossed) {
     print(all(t > 0L))
   } else{
