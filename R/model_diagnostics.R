@@ -56,6 +56,6 @@ block_interactions_plot = function(full_model,block = 'Block') {
   block_means = tapply(frame$fitted,frame$block,mean)
   frame$block = factor(frame$block,levels = levels(frame$block)[order(block_means)])
   p = ggplot(frame,aes(x=block,y=fitted)) + geom_line(aes(group = group,color = group)) +
-    ylab(all.vars(formula(full_model)[[2]])) + xlab(block) + guides(color = guide_legend(title = paste(vars,collapse=':')))
+    ylab(colnames(frame)[1]) + xlab(block) + guides(color = guide_legend(title = paste(vars,collapse=':')))
   print(p)
 }
