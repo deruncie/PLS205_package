@@ -20,16 +20,39 @@ pls205_diagnostics = function(model,EU = NULL) {
       eu_data = data.frame(fitted = fitted(model),EU_std_resid = resid(model))
     } else {
       # plot estimated values of EU
-      if(!EU %in% all.vars(formula(model))) stop(sprintf('Your EU (%s) is not in the model you provided',EU))
-      eu_data = data.frame(EU_obs = predict(model,re.form = formula(sprintf('~(1|%s)',EU))),fitted = predict(model,re.form=NA),model@frame)
-      eu_data = eu_data[!duplicated(eu_data[[EU]]),]
-      eu_data = eu_data[order(eu_data[[EU]]),]
-      ranefs = as.data.frame(ranef(model,condVar=T))
-      if(all(ranefs$condsd>0)) {
-        ranefs$condsd = ranefs$condsd/mean(ranefs$condsd)
-        eu_data$EU_std_resid = (ranefs$condval/ranefs$condsd)[match(eu_data[[EU]],ranefs$grp)]
-      } else{
-        eu_data$EU_std_resid = ranefs$condval[match(eu_data[[EU]],ranefs$grp)]
+      EU_formula = as.formula(paste0('~',EU))
+      EU_vars = all.vars(EU_formula)
+      # if(!all(EU_vars %in% all.vars(formula(model)))) stop(sprintf('Your EU (%s) is not in the model you provided',EU))
+      if(!EU %in% names(model@cnms)) {
+        # 1) check if all EU_vars are valid variables
+        if(all(EU_vars %in% all.vars(formula(model)))) {
+          # If yes, check if this defines the residuals
+          data = model@frame
+          data$EU = interaction(lapply(EU_vars,function(x) data[[x]]),drop=T,sep=':')
+          data$index = 1:nrow(data)
+          if(is_aliased(EU~index,data)) {
+            eu_data = data.frame(fitted = fitted(model),EU_std_resid = resid(model))
+          } else{
+            # not residuals
+            stop(sprintf('Your EU (%s) is not a randome effect or a residual',EU))
+          }
+        } else{
+          stop(sprintf('Your EU (%s) is not in the model you provided',EU))
+        }
+      } else {
+
+        # if(!EU %in% all.vars(formula(model))) stop(sprintf('Your EU (%s) is not in the model you provided',EU))
+        eu_data = data.frame(EU_obs = predict(model,re.form = formula(sprintf('~(1|%s)',EU))),fitted = predict(model,re.form=NA),model@frame)
+        eu_data$EU = interaction(lapply(EU_vars,function(x) eu_data[[x]]),drop=T,sep=':')
+        eu_data = eu_data[!duplicated(eu_data$EU),]
+        eu_data = eu_data[order(eu_data$EU),]
+        ranefs = as.data.frame(ranef(model,condVar=T))
+        if(all(ranefs$condsd>0)) {
+          ranefs$condsd = ranefs$condsd/mean(ranefs$condsd)
+          eu_data$EU_std_resid = (ranefs$condval/ranefs$condsd)[match(eu_data$EU,ranefs$grp)]
+        } else{
+          eu_data$EU_std_resid = ranefs$condval[match(eu_data$EU,ranefs$grp)]
+        }
       }
     }
   }
