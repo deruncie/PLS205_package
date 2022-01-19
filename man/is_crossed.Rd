@@ -4,12 +4,10 @@
 \alias{is_crossed}
 \title{Checks pairs of Variables for a crossed relationship}
 \usage{
-is_crossed(term1, term2, data)
+is_crossed(formula, data, only_full_crossed = F)
 }
 \arguments{
-\item{term1, }{One Variable name of interest.}
-
-\item{term2}{A second Variable name of interest.}
+\item{formula, }{term1 ~ term2}
 
 \item{data}{data.frame with columns (minimally) \code{term1} and \code{term2}}
 
@@ -22,6 +20,6 @@ TRUE or FALSE
 \description{
 Given two variable names and a data.table, checks if the \code{term1} is crossed with the \code{term2}.
 Two variables are at least partially crossed if at least some levels of \code{term1} are paired
-with multiple levels of \code{term2} and vice versa. We consider \emph{partially crossed} a sufficient
+with multiple levels of \code{term2} and vice verse. We consider \emph{partially crossed} a sufficient
 condition for crossed relationships here. In some cases, we care about fully crossed.
 }

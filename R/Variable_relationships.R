@@ -24,6 +24,7 @@ is_nested = function(outer_term,inner_term,data = NULL) {
     }
     outer_term = formula[[2]]
     inner_term = formula[[3]]
+    # should change this code to test subspaces.
     outer = interaction(lapply(all.vars(outer_term),function(x) data[[x]]),drop=T)
     inner = interaction(lapply(all.vars(inner_term),function(x) data[[x]]),drop=T)
     all(colSums(table(outer,inner) > 0L) == 1L)

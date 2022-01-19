@@ -4,7 +4,7 @@
 \alias{is_nested}
 \title{Checks pairs of Variables for a nested relationship}
 \usage{
-is_nested(outer_term, inner_term, data)
+is_nested(outer_term, inner_term, data = NULL)
 }
 \arguments{
 \item{outer_term}{Term expected to be at the higher level}

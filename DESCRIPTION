@@ -13,4 +13,4 @@ Imports:
     ggplot2
 Requires:
     car
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
