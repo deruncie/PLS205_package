@@ -5,26 +5,9 @@
 # d$X = 1:nrow(d)
 # d$y = rnorm(nrow(d))
 #
-# f = y~A+B+A:B+(1|C)+X
+# f = y~A+B+A:B+(1|A:C)+X
 #
 # str(get_all_vars(f,d))
-# remove_b
-#
-# # print_values(x) {
-# #   if(is.numeric(x)) {
-# #     if(length(x) >5) {
-# #       paste(c(signif(x[1:5,digits=4]),'...'),collapse=' ')
-# #     } else{
-# #       paste(signif(x,digits=4]),collapse=' ')
-# #     }
-# #   } else{
-# #     if(is.factor(x)) {
-# #       l = levels(x)
-# #       if(length(l))
-# #     }
-# #   }
-# # }
-#
 # d1 = d
 
 #' check_data Checks a data.frame for all the terms in a model
@@ -51,8 +34,8 @@ check_data = function(object,d = NULL) {
   # now extract each term
   expanded_d = list()
   all_terms = terms(lme4::subbars(f))
-  response = as.character(all_terms[[2]])
-  expanded_d[[response]] = d[[response]]
+  response = colnames(mf)[[1]]
+  expanded_d[[response]] = mf[,1]
 
   for(t in all.vars(all_terms)) {
     if(!is.numeric(d[[t]])) d[[t]] = droplevels(as.factor(d[[t]]))
@@ -66,7 +49,6 @@ check_data = function(object,d = NULL) {
     }
   }
   expanded_d = data.frame(expanded_d,check.names = F)
-  # all(model.matrix(subbars(f),d) == model.matrix(subbars(f),expanded_d))
   print(f)
   str(expanded_d)
 }
